@@ -8,8 +8,8 @@
  *   - geolocalizacao (expo-location),
  *   - backend (POST /api/registros).
  */
-import { useState } from 'react';
-import { ScrollView, View, Text, Alert, StyleSheet } from 'react-native';
+import { useState, useLayoutEffect } from 'react';
+import { ScrollView, View, Text, Alert, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
@@ -33,9 +33,9 @@ function Linha({ icone, rotulo, valor }) {
   );
 }
 
-export default function DetalheScreen({ route }) {
+export default function DetalheScreen({ route, navigation }) {
   // `somenteLeitura` vem da aba "Salvos": o item ja foi salvo, entao
-  // escondemos o botao de salvar e mostramos apenas os detalhes.
+  // escondemos o icone de salvar e mostramos apenas os detalhes.
   const { medicamento, distrito, somenteLeitura = false } = route.params;
   const [salvando, setSalvando] = useState(false);
   const [registroSalvo, setRegistroSalvo] = useState(null);
@@ -74,16 +74,42 @@ export default function DetalheScreen({ route }) {
       const salvo = await salvarRegistro(payload);
       setRegistroSalvo(salvo);
 
-      Alert.alert(
-        'Registro salvo',
-        'A sua localização foi associada a este medicamento. Veja na aba Salvos.'
-      );
+      // Mensagem curta de confirmacao.
+      Alert.alert('Salvo');
     } catch (e) {
       Alert.alert('Não foi possível salvar', e.message);
     } finally {
       setSalvando(false);
     }
   }
+
+  // Configura o header desta tela: fundo na cor primaria e, do lado direito,
+  // um icone para salvar. O icone fica branco (contorno) quando ainda nao foi
+  // salvo e muda para dourado (preenchido) depois de salvar. No modo somente
+  // leitura (aberto a partir de Salvos) o icone nao aparece.
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerStyle: { backgroundColor: colors.primary },
+      headerTintColor: colors.textOnPrimary,
+      headerTitleStyle: { color: colors.textOnPrimary, fontWeight: '700' },
+      headerShadowVisible: false,
+      headerRight: somenteLeitura
+        ? undefined
+        : () =>
+            salvando ? (
+              <ActivityIndicator color={colors.textOnPrimary} style={styles.iconeHeader} />
+            ) : (
+              <Pressable onPress={salvarComLocalizacao} hitSlop={12} style={styles.iconeHeader}>
+                <Ionicons
+                  name={registroSalvo ? 'bookmark' : 'bookmark-outline'}
+                  size={24}
+                  color={registroSalvo ? '#FACC15' : colors.textOnPrimary}
+                />
+              </Pressable>
+            ),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigation, salvando, registroSalvo, somenteLeitura]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
@@ -123,30 +149,6 @@ export default function DetalheScreen({ route }) {
             onPress={copiarUnidade}
           />
         </View>
-
-        {/* Cartao de acao: salvar o registro (medicamento + localizacao).
-            Escondido no modo somente leitura (item aberto a partir de Salvos). */}
-        {!somenteLeitura ? (
-          <View style={styles.card}>
-            <Botao
-              titulo="Salvar"
-              icone="bookmark"
-              carregando={salvando}
-              onPress={salvarComLocalizacao}
-            />
-
-            {/* Confirmacao apos salvar */}
-            {registroSalvo ? (
-              <View style={styles.confirmacao}>
-                <Ionicons name="checkmark-circle" size={18} color={colors.ok} />
-                <Text style={styles.confirmacaoTexto}>
-                  Salvo em {registroSalvo.localizacao.latitude.toFixed(5)},{' '}
-                  {registroSalvo.localizacao.longitude.toFixed(5)}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -229,19 +231,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: '600',
   },
-  confirmacao: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-    backgroundColor: colors.okBg,
-    padding: spacing.md,
-    borderRadius: radius.md,
-  },
-  confirmacaoTexto: {
-    flex: 1,
-    fontSize: 13,
-    color: colors.ok,
-    fontWeight: '600',
+  iconeHeader: {
+    marginRight: spacing.sm,
   },
 });
