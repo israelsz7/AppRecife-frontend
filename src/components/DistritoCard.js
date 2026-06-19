@@ -17,8 +17,13 @@ export default function DistritoCard({ distrito, onPress }) {
       </View>
 
       <View style={styles.meio}>
-        <Text style={styles.nome}>{distrito.nome}</Text>
-        <Text style={styles.subtitulo}>Ver farmácias e medicamentos</Text>
+        <Text style={styles.nome}>
+          {distrito.nome}
+          {distrito.regiao ? ` · ${distrito.regiao}` : ''}
+        </Text>
+        <Text style={styles.subtitulo} numberOfLines={2}>
+          {distrito.bairros}
+        </Text>
       </View>
 
       <Ionicons name="chevron-forward" size={22} color={colors.textMuted} />

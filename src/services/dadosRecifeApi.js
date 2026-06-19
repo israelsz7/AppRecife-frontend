@@ -13,16 +13,65 @@
 
 const BASE_URL = 'https://dados.recife.pe.gov.br/api/3/action/datastore_search';
 
-// Lista dos 8 Distritos Sanitarios e os respectivos resource_id do portal.
+// Lista dos 8 Distritos Sanitarios, com a regiao, alguns bairros que cada um
+// abrange e o respectivo resource_id do portal de dados.
 export const DISTRITOS = [
-  { numero: 1, nome: 'Distrito Sanitário 1', resourceId: '537f0b95-4eb7-4912-9d7c-32caf9fd68ac' },
-  { numero: 2, nome: 'Distrito Sanitário 2', resourceId: '30e87813-b5a3-4cbd-b35e-b09156f52698' },
-  { numero: 3, nome: 'Distrito Sanitário 3', resourceId: '832ae42d-0163-45e8-82c1-a4e00a5ec1b6' },
-  { numero: 4, nome: 'Distrito Sanitário 4', resourceId: 'a4d419a8-4355-4ae9-b116-9cc35b914f50' },
-  { numero: 5, nome: 'Distrito Sanitário 5', resourceId: '77040c32-2a39-4416-ba93-5c7386b46dcb' },
-  { numero: 6, nome: 'Distrito Sanitário 6', resourceId: 'ac869f94-a655-4388-871b-9957b0a642a4' },
-  { numero: 7, nome: 'Distrito Sanitário 7', resourceId: '97109f18-a189-4084-acaf-b3aff6e65d51' },
-  { numero: 8, nome: 'Distrito Sanitário 8', resourceId: '2e411ebc-0bef-4e03-ae34-2b792b5468c2' },
+  {
+    numero: 1,
+    nome: 'Distrito Sanitário 1',
+    regiao: 'Centro',
+    bairros: 'Boa Vista, Santo Amaro, Santo Antônio e Coelhos',
+    resourceId: '537f0b95-4eb7-4912-9d7c-32caf9fd68ac',
+  },
+  {
+    numero: 2,
+    nome: 'Distrito Sanitário 2',
+    regiao: 'Zona Norte',
+    bairros: 'Beberibe, Arruda, Campo Grande e Cajueiro',
+    resourceId: '30e87813-b5a3-4cbd-b35e-b09156f52698',
+  },
+  {
+    numero: 3,
+    nome: 'Distrito Sanitário 3',
+    regiao: 'Noroeste',
+    bairros: 'Casa Amarela, Casa Forte e Jaqueira',
+    resourceId: '832ae42d-0163-45e8-82c1-a4e00a5ec1b6',
+  },
+  {
+    numero: 4,
+    nome: 'Distrito Sanitário 4',
+    regiao: 'Oeste',
+    bairros: 'Madalena, Cordeiro e Iputinga',
+    resourceId: 'a4d419a8-4355-4ae9-b116-9cc35b914f50',
+  },
+  {
+    numero: 5,
+    nome: 'Distrito Sanitário 5',
+    regiao: 'Sudoeste',
+    bairros: 'Afogados, San Martin e Mustardinha',
+    resourceId: '77040c32-2a39-4416-ba93-5c7386b46dcb',
+  },
+  {
+    numero: 6,
+    nome: 'Distrito Sanitário 6',
+    regiao: 'Zona Sul',
+    bairros: 'Boa Viagem, Pina e Imbiribeira',
+    resourceId: 'ac869f94-a655-4388-871b-9957b0a642a4',
+  },
+  {
+    numero: 7,
+    nome: 'Distrito Sanitário 7',
+    regiao: 'Norte',
+    bairros: 'Nova Descoberta e Macaxeira',
+    resourceId: '97109f18-a189-4084-acaf-b3aff6e65d51',
+  },
+  {
+    numero: 8,
+    nome: 'Distrito Sanitário 8',
+    regiao: 'Extremo Oeste',
+    bairros: 'Várzea, Caxangá e Barro',
+    resourceId: '2e411ebc-0bef-4e03-ae34-2b792b5468c2',
+  },
 ];
 
 /**
