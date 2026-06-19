@@ -31,3 +31,24 @@ export async function obterLocalizacaoAtual() {
     precisao: posicao.coords.accuracy, // em metros (pode ser null em alguns aparelhos)
   };
 }
+
+/**
+ * Converte um texto (nome/endereco de uma unidade de saude) em coordenadas,
+ * usando o geocodificador do proprio aparelho (sem necessidade de chave).
+ *
+ * Acrescentamos "Recife - PE, Brasil" ao termo para direcionar a busca para
+ * a cidade e melhorar a precisao do resultado.
+ *
+ * @param {string} texto - nome ou endereco a procurar
+ * @returns {Promise<{latitude:number, longitude:number}|null>} primeiro
+ *          resultado encontrado, ou null se nada for encontrado
+ */
+export async function geocodificarEndereco(texto) {
+  const consulta = `${texto}, Recife - PE, Brasil`;
+  const resultados = await Location.geocodeAsync(consulta);
+  if (!resultados || resultados.length === 0) {
+    return null;
+  }
+  const { latitude, longitude } = resultados[0];
+  return { latitude, longitude };
+}
