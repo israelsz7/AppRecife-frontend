@@ -2,47 +2,34 @@
  * Tela de Localizacao.
  *
  * Demonstra o RASTREAMENTO DE LOCALIZACAO do usuario usando a API de
- * geolocalizacao (expo-location). Ao tocar no botao, o app pede permissao,
- * le as coordenadas e as exibe. Tambem permite abrir o ponto no app de mapas.
+ * geolocalizacao (expo-location). Ao abrir, o app pede permissao, le as
+ * coordenadas e mostra um MINI MAPA (react-native-maps) com um marcador na
+ * posicao atual do usuario.
  */
-import { useState } from 'react';
-import { ScrollView, View, Text, Linking, StyleSheet } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, Linking, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
+import MapView, { Marker } from 'react-native-maps';
 import { colors, spacing, radius, cardShadow } from '../theme';
 import { obterLocalizacaoAtual } from '../services/locationService';
-import { formatarData } from '../utils/formatadores';
 import Cabecalho from '../components/Cabecalho';
 import Botao from '../components/Botao';
+import Carregando from '../components/Carregando';
 import EstadoVazio from '../components/EstadoVazio';
 
-// Bloco que mostra um valor de coordenada com rotulo.
-function Coordenada({ icone, rotulo, valor }) {
-  return (
-    <View style={styles.coord}>
-      <Ionicons name={icone} size={20} color={colors.primary} />
-      <View style={{ marginLeft: spacing.md }}>
-        <Text style={styles.coordRotulo}>{rotulo}</Text>
-        <Text style={styles.coordValor}>{valor}</Text>
-      </View>
-    </View>
-  );
-}
-
 export default function LocalizacaoScreen() {
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
   const [local, setLocal] = useState(null);
   const [erro, setErro] = useState(null);
-  const [atualizadoEm, setAtualizadoEm] = useState(null);
 
+  // Busca a localizacao do usuario (usada na montagem e no botao "Atualizar").
   async function buscarLocalizacao() {
     try {
       setCarregando(true);
       setErro(null);
       const resultado = await obterLocalizacaoAtual();
       setLocal(resultado);
-      setAtualizadoEm(new Date().toISOString());
     } catch (e) {
       setErro(e.message);
       setLocal(null);
@@ -51,6 +38,11 @@ export default function LocalizacaoScreen() {
     }
   }
 
+  // Ao abrir a tela, ja tenta mostrar o mapa com a posicao atual.
+  useEffect(() => {
+    buscarLocalizacao();
+  }, []);
+
   // Abre as coordenadas no aplicativo de mapas do aparelho.
   function abrirNoMapa() {
     if (!local) return;
@@ -58,65 +50,60 @@ export default function LocalizacaoScreen() {
     Linking.openURL(url);
   }
 
+  // Regiao exibida no mapa (deltas pequenos = mais aproximado/zoom).
+  const regiao = local
+    ? {
+        latitude: local.latitude,
+        longitude: local.longitude,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      }
+    : null;
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <StatusBar style="dark" />
-      <ScrollView contentContainerStyle={styles.conteudo} showsVerticalScrollIndicator={false}>
-        <Cabecalho
-          titulo="Minha localização"
-          subtitulo="Use o GPS do aparelho para obter as suas coordenadas atuais."
-        />
+      <Cabecalho
+        titulo="Minha localização"
+        subtitulo="Veja no mapa onde você está agora."
+      />
 
-        <View style={styles.cardAcao}>
-          <Botao
-            titulo="Obter minha localização"
-            icone="navigate"
-            carregando={carregando}
-            onPress={buscarLocalizacao}
-          />
-        </View>
-
-        {/* Resultado */}
-        {erro ? (
+      {carregando ? (
+        <Carregando mensagem="Obtendo sua localização..." />
+      ) : erro ? (
+        <View style={styles.centro}>
           <EstadoVazio
             icone="warning-outline"
             titulo="Não foi possível obter a localização"
             descricao={erro}
             cor={colors.perigo}
           />
-        ) : local ? (
-          <View style={styles.card}>
-            <Coordenada icone="location" rotulo="Latitude" valor={local.latitude.toFixed(6)} />
-            <View style={styles.divisor} />
-            <Coordenada icone="location-outline" rotulo="Longitude" valor={local.longitude.toFixed(6)} />
-            <View style={styles.divisor} />
-            <Coordenada
-              icone="speedometer-outline"
-              rotulo="Precisão aproximada"
-              valor={local.precisao != null ? `${local.precisao.toFixed(0)} metros` : 'Indisponível'}
-            />
-            {atualizadoEm ? (
-              <Text style={styles.atualizado}>Atualizado em {formatarData(atualizadoEm)}</Text>
-            ) : null}
+          <View style={styles.acaoErro}>
+            <Botao titulo="Tentar novamente" icone="refresh" onPress={buscarLocalizacao} />
+          </View>
+        </View>
+      ) : (
+        <View style={styles.conteudo}>
+          {/* Mini mapa com marcador na posicao atual */}
+          <View style={styles.mapaWrapper}>
+            <MapView
+              style={StyleSheet.absoluteFillObject}
+              region={regiao}
+              showsUserLocation
+              showsMyLocationButton={false}
+            >
+              <Marker coordinate={regiao} title="Você está aqui" />
+            </MapView>
+          </View>
 
-            <View style={{ marginTop: spacing.lg }}>
-              <Botao
-                titulo="Ver no mapa"
-                icone="map"
-                variante="secundaria"
-                onPress={abrirNoMapa}
-              />
-            </View>
+          {/* Acoes */}
+          <View style={styles.acoes}>
+            <Botao titulo="Atualizar localização" icone="refresh" onPress={buscarLocalizacao} />
+            <View style={{ height: spacing.md }} />
+            <Botao titulo="Abrir no app de mapas" icone="map" variante="secundaria" onPress={abrirNoMapa} />
           </View>
-        ) : (
-          <View style={styles.placeholder}>
-            <Ionicons name="map-outline" size={56} color={colors.textMuted} />
-            <Text style={styles.placeholderTexto}>
-              Toque no botão acima para descobrir onde você está.
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -127,54 +114,27 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   conteudo: {
-    paddingBottom: spacing.xxl,
-  },
-  cardAcao: {
+    flex: 1,
     paddingHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
+    paddingBottom: spacing.lg,
   },
-  card: {
-    backgroundColor: colors.surface,
+  mapaWrapper: {
+    flex: 1,
     borderRadius: radius.lg,
-    padding: spacing.lg,
-    marginHorizontal: spacing.lg,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.border,
     ...cardShadow,
   },
-  coord: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
+  acoes: {
+    marginTop: spacing.lg,
   },
-  coordRotulo: {
-    fontSize: 12,
-    color: colors.textMuted,
+  centro: {
+    flex: 1,
+    justifyContent: 'center',
   },
-  coordValor: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  divisor: {
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  atualizado: {
-    fontSize: 12,
-    color: colors.textMuted,
-    marginTop: spacing.md,
-    textAlign: 'center',
-  },
-  placeholder: {
-    alignItems: 'center',
-    padding: spacing.xxl,
-  },
-  placeholderTexto: {
-    marginTop: spacing.md,
-    color: colors.textMuted,
-    textAlign: 'center',
-    fontSize: 14,
-    lineHeight: 20,
+  acaoErro: {
+    paddingHorizontal: spacing.xl,
+    marginTop: spacing.sm,
   },
 });
