@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { ScrollView, View, Text, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { colors, spacing, radius, cardShadow } from '../theme';
 import { capitalizarTexto, formatarNumero } from '../utils/formatadores';
 import { obterLocalizacaoAtual } from '../services/locationService';
@@ -33,9 +34,20 @@ function Linha({ icone, rotulo, valor }) {
 }
 
 export default function DetalheScreen({ route }) {
-  const { medicamento, distrito } = route.params;
+  // `somenteLeitura` vem da aba "Salvos": o item ja foi salvo, entao
+  // escondemos o botao de salvar e mostramos apenas os detalhes.
+  const { medicamento, distrito, somenteLeitura = false } = route.params;
   const [salvando, setSalvando] = useState(false);
   const [registroSalvo, setRegistroSalvo] = useState(null);
+  const [copiado, setCopiado] = useState(false);
+
+  // Copia o nome da unidade de saude para a area de transferencia.
+  async function copiarUnidade() {
+    await Clipboard.setStringAsync(medicamento.unidade);
+    setCopiado(true);
+    // Volta o botao ao estado normal depois de 2 segundos.
+    setTimeout(() => setCopiado(false), 2000);
+  }
 
   async function salvarComLocalizacao() {
     try {
@@ -102,28 +114,39 @@ export default function DetalheScreen({ route }) {
           {medicamento.codigo_produto ? (
             <Linha icone="barcode-outline" rotulo="Código do produto" valor={String(medicamento.codigo_produto)} />
           ) : null}
-        </View>
 
-        {/* Cartao de acao: salvar o registro (medicamento + localizacao) */}
-        <View style={styles.card}>
+          {/* Botao para copiar o nome da unidade de saude */}
           <Botao
-            titulo="Salvar"
-            icone="bookmark"
-            carregando={salvando}
-            onPress={salvarComLocalizacao}
+            titulo={copiado ? 'Nome copiado!' : 'Copiar nome da unidade'}
+            icone={copiado ? 'checkmark' : 'copy-outline'}
+            variante="secundaria"
+            onPress={copiarUnidade}
           />
-
-          {/* Confirmacao apos salvar */}
-          {registroSalvo ? (
-            <View style={styles.confirmacao}>
-              <Ionicons name="checkmark-circle" size={18} color={colors.ok} />
-              <Text style={styles.confirmacaoTexto}>
-                Salvo em {registroSalvo.localizacao.latitude.toFixed(5)},{' '}
-                {registroSalvo.localizacao.longitude.toFixed(5)}
-              </Text>
-            </View>
-          ) : null}
         </View>
+
+        {/* Cartao de acao: salvar o registro (medicamento + localizacao).
+            Escondido no modo somente leitura (item aberto a partir de Salvos). */}
+        {!somenteLeitura ? (
+          <View style={styles.card}>
+            <Botao
+              titulo="Salvar"
+              icone="bookmark"
+              carregando={salvando}
+              onPress={salvarComLocalizacao}
+            />
+
+            {/* Confirmacao apos salvar */}
+            {registroSalvo ? (
+              <View style={styles.confirmacao}>
+                <Ionicons name="checkmark-circle" size={18} color={colors.ok} />
+                <Text style={styles.confirmacaoTexto}>
+                  Salvo em {registroSalvo.localizacao.latitude.toFixed(5)},{' '}
+                  {registroSalvo.localizacao.longitude.toFixed(5)}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
