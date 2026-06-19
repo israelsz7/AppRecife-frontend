@@ -17,10 +17,9 @@ export default function DistritoCard({ distrito, onPress }) {
       </View>
 
       <View style={styles.meio}>
-        <Text style={styles.nome}>
-          {distrito.nome}
-          {distrito.regiao ? ` · ${distrito.regiao}` : ''}
-        </Text>
+        <Text style={styles.nome} numberOfLines={1}>{distrito.nome}</Text>
+        {/* numberOfLines + altura minima fixa deixam todos os cards do mesmo
+            tamanho, independente da quantidade de bairros. */}
         <Text style={styles.subtitulo} numberOfLines={2}>
           {distrito.bairros}
         </Text>
@@ -71,7 +70,10 @@ const styles = StyleSheet.create({
   },
   subtitulo: {
     fontSize: 13,
+    lineHeight: 18,
     color: colors.textMuted,
-    marginTop: 2,
+    marginTop: 4,
+    // Reserva o espaco de 2 linhas para que todos os cards tenham a mesma altura.
+    minHeight: 36,
   },
 });
