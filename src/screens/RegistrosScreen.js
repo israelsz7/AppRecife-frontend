@@ -112,7 +112,7 @@ export default function RegistrosScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <StatusBar style="dark" />
       <Cabecalho
-        titulo="Meus registros"
+        titulo="Salvos"
         subtitulo="Medicamentos que você salvou junto com a sua localização."
       />
 

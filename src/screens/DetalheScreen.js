@@ -63,8 +63,8 @@ export default function DetalheScreen({ route }) {
       setRegistroSalvo(salvo);
 
       Alert.alert(
-        'Registro salvo! ✅',
-        'A sua localização foi associada a este medicamento. Veja na aba "Registros".'
+        'Registro salvo',
+        'A sua localização foi associada a este medicamento. Veja na aba Salvos.'
       );
     } catch (e) {
       Alert.alert('Não foi possível salvar', e.message);
@@ -104,16 +104,11 @@ export default function DetalheScreen({ route }) {
           ) : null}
         </View>
 
-        {/* Cartao de acao: salvar com a localizacao */}
+        {/* Cartao de acao: salvar o registro (medicamento + localizacao) */}
         <View style={styles.card}>
-          <Text style={styles.tituloSecao}>Salvar com a minha localização</Text>
-          <Text style={styles.descricao}>
-            Use o GPS do aparelho para registrar que você encontrou este medicamento.
-            O registro fica salvo no backend e pode ser consultado depois.
-          </Text>
           <Botao
-            titulo={registroSalvo ? 'Salvar novamente' : 'Salvar com minha localização'}
-            icone="location"
+            titulo="Salvar"
+            icone="bookmark"
             carregando={salvando}
             onPress={salvarComLocalizacao}
           />
@@ -210,12 +205,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
     fontWeight: '600',
-  },
-  descricao: {
-    fontSize: 14,
-    color: colors.textMuted,
-    lineHeight: 20,
-    marginBottom: spacing.lg,
   },
   confirmacao: {
     flexDirection: 'row',

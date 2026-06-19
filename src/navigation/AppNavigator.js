@@ -81,7 +81,7 @@ export default function AppNavigator() {
       >
         <Tab.Screen name="Inicio" component={MedicamentosStack} options={{ title: 'Medicamentos' }} />
         <Tab.Screen name="Localizacao" component={LocalizacaoScreen} options={{ title: 'Localização' }} />
-        <Tab.Screen name="Registros" component={RegistrosScreen} options={{ title: 'Registros' }} />
+        <Tab.Screen name="Registros" component={RegistrosScreen} options={{ title: 'Salvos' }} />
       </Tab.Navigator>
     </NavigationContainer>
   );
