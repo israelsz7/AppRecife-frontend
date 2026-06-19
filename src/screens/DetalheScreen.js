@@ -16,7 +16,7 @@ import * as Clipboard from 'expo-clipboard';
 import { colors, spacing, radius, cardShadow } from '../theme';
 import { capitalizarTexto, formatarNumero } from '../utils/formatadores';
 import { obterLocalizacaoAtual } from '../services/locationService';
-import { salvarRegistro } from '../services/backendApi';
+import { salvarRegistro, removerRegistro } from '../services/backendApi';
 import SeloEstoque from '../components/SeloEstoque';
 import Botao from '../components/Botao';
 
@@ -49,7 +49,25 @@ export default function DetalheScreen({ route, navigation }) {
     setTimeout(() => setCopiado(false), 2000);
   }
 
-  async function salvarComLocalizacao() {
+  // Alterna o estado de salvo: se ainda nao esta salvo, salva (POST);
+  // se ja esta salvo, remove dos salvos (DELETE).
+  async function alternarSalvar() {
+    // --- Ja esta salvo: remover dos salvos ---
+    if (registroSalvo) {
+      try {
+        setSalvando(true);
+        await removerRegistro(registroSalvo.id);
+        setRegistroSalvo(null);
+        Alert.alert('Removido', `"${capitalizarTexto(medicamento.produto)}" saiu da aba Salvos.`);
+      } catch (e) {
+        Alert.alert('Não foi possível remover', e.message);
+      } finally {
+        setSalvando(false);
+      }
+      return;
+    }
+
+    // --- Ainda nao esta salvo: salvar com a localizacao atual ---
     try {
       setSalvando(true);
 
@@ -74,8 +92,10 @@ export default function DetalheScreen({ route, navigation }) {
       const salvo = await salvarRegistro(payload);
       setRegistroSalvo(salvo);
 
-      // Mensagem curta de confirmacao.
-      Alert.alert('Salvo');
+      Alert.alert(
+        'Salvo na aba Salvos',
+        `"${capitalizarTexto(medicamento.produto)}" foi salvo junto com a sua localização atual.`
+      );
     } catch (e) {
       Alert.alert('Não foi possível salvar', e.message);
     } finally {
@@ -84,9 +104,9 @@ export default function DetalheScreen({ route, navigation }) {
   }
 
   // Configura o header desta tela: fundo na cor primaria e, do lado direito,
-  // um icone para salvar. O icone fica branco (contorno) quando ainda nao foi
-  // salvo e muda para dourado (preenchido) depois de salvar. No modo somente
-  // leitura (aberto a partir de Salvos) o icone nao aparece.
+  // um icone que ALTERNA o estado de salvo. Branco (contorno) = nao salvo;
+  // dourado (preenchido) = salvo. Tocar quando ja esta salvo remove dos salvos.
+  // No modo somente leitura (aberto a partir de Salvos) o icone nao aparece.
   useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: { backgroundColor: colors.primary },
@@ -99,7 +119,7 @@ export default function DetalheScreen({ route, navigation }) {
             salvando ? (
               <ActivityIndicator color={colors.textOnPrimary} style={styles.iconeHeader} />
             ) : (
-              <Pressable onPress={salvarComLocalizacao} hitSlop={12} style={styles.iconeHeader}>
+              <Pressable onPress={alternarSalvar} hitSlop={12} style={styles.iconeHeader}>
                 <Ionicons
                   name={registroSalvo ? 'bookmark' : 'bookmark-outline'}
                   size={24}
