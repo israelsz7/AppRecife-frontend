@@ -20,10 +20,13 @@ import Carregando from '../components/Carregando';
 import EstadoVazio from '../components/EstadoVazio';
 
 // Card de um registro salvo.
-function RegistroCard({ registro, onExcluir }) {
+function RegistroCard({ registro, onExcluir, onAbrir }) {
   const { localizacao, medicamento } = registro;
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={onAbrir}
+      style={({ pressed }) => [styles.card, pressed && styles.cardPressionado]}
+    >
       <View style={styles.topo}>
         <View style={styles.iconeWrapper}>
           <Ionicons name="bookmark" size={16} color={colors.primary} />
@@ -58,11 +61,11 @@ function RegistroCard({ registro, onExcluir }) {
         </Text>
         <Text style={styles.data}>{formatarData(registro.criadoEm)}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
-export default function RegistrosScreen() {
+export default function RegistrosScreen({ navigation }) {
   const [registros, setRegistros] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
@@ -89,6 +92,26 @@ export default function RegistrosScreen() {
       carregar();
     }, [carregar])
   );
+
+  // Abre a tela de detalhes (somente leitura) com os dados do registro salvo.
+  // Convertemos do formato salvo no backend para o formato esperado pela
+  // tela de detalhe (que originalmente recebe dados crus da API do Recife).
+  function abrirDetalhe(registro) {
+    const m = registro.medicamento;
+    navigation.navigate('Detalhe', {
+      somenteLeitura: true,
+      distrito: { nome: m.distrito != null ? `Distrito Sanitário ${m.distrito}` : 'Distrito não informado' },
+      medicamento: {
+        produto: m.produto,
+        unidade: m.unidade,
+        classe: m.classe,
+        apresentacao: m.apresentacao,
+        quantidade: m.quantidade,
+        codigo_produto: m.codigoProduto,
+        distrito: m.distrito,
+      },
+    });
+  }
 
   function confirmarExclusao(registro) {
     Alert.alert('Excluir registro', 'Deseja remover este registro?', [
@@ -143,11 +166,15 @@ export default function RegistrosScreen() {
             <EstadoVazio
               icone="bookmarks-outline"
               titulo="Nenhum registro ainda"
-              descricao="Abra um medicamento e toque em “Salvar com minha localização” para criar o primeiro registro."
+              descricao="Abra um medicamento e toque em “Salvar” para criar o primeiro registro."
             />
           }
           renderItem={({ item }) => (
-            <RegistroCard registro={item} onExcluir={() => confirmarExclusao(item)} />
+            <RegistroCard
+              registro={item}
+              onAbrir={() => abrirDetalhe(item)}
+              onExcluir={() => confirmarExclusao(item)}
+            />
           )}
         />
       )}
@@ -173,6 +200,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     ...cardShadow,
+  },
+  cardPressionado: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
   },
   topo: {
     flexDirection: 'row',

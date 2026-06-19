@@ -54,6 +54,16 @@ function MedicamentosStack() {
   );
 }
 
+// Pilha de telas da aba "Salvos": lista -> detalhe (reaproveita DetalheScreen).
+function SalvosStack() {
+  return (
+    <Stack.Navigator screenOptions={headerPadrao}>
+      <Stack.Screen name="Salvos" component={RegistrosScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Detalhe" component={DetalheScreen} options={{ title: 'Detalhes' }} />
+    </Stack.Navigator>
+  );
+}
+
 // Icone de cada aba.
 const ICONES = {
   Inicio: 'medical',
@@ -81,7 +91,7 @@ export default function AppNavigator() {
       >
         <Tab.Screen name="Inicio" component={MedicamentosStack} options={{ title: 'Medicamentos' }} />
         <Tab.Screen name="Localizacao" component={LocalizacaoScreen} options={{ title: 'Localização' }} />
-        <Tab.Screen name="Registros" component={RegistrosScreen} options={{ title: 'Salvos' }} />
+        <Tab.Screen name="Registros" component={SalvosStack} options={{ title: 'Salvos' }} />
       </Tab.Navigator>
     </NavigationContainer>
   );
